@@ -285,6 +285,13 @@ class TaskRepository @Inject constructor(
     }
 
     suspend fun verificarYGenerarTareasRecurrentes(fechaHoy: String) = withContext(Dispatchers.IO) {
+        val sharedPrefs = context.getSharedPreferences("cafeypan_prefs", android.content.Context.MODE_PRIVATE)
+        val ultimaFechaGeneracion = sharedPrefs.getString("PREF_LAST_RECURRENT_GENERATION_DATE", "")
+        
+        if (ultimaFechaGeneracion == fechaHoy) {
+            return@withContext
+        }
+
         val tareasHoy = taskDao.getTasksByDate(fechaHoy)
         if (tareasHoy.isEmpty()) {
             val listaDefault = listOf(
@@ -313,6 +320,7 @@ class TaskRepository @Inject constructor(
             }
             programarSincronizacion()
         }
+        sharedPrefs.edit().putString("PREF_LAST_RECURRENT_GENERATION_DATE", fechaHoy).apply()
     }
 
     private fun programarAlarmaTarea(id: Int, descripcion: String) {

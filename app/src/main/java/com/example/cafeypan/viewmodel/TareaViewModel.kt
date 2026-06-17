@@ -31,7 +31,7 @@ class TareaViewModel @Inject constructor(
     val syncStatus: StateFlow<String> = _syncStatus.asStateFlow()
 
     private val formattedToday: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
     val listaTareas: StateFlow<List<TaskEntity>> = combine(
         _isShowingTodayOnly,
@@ -112,7 +112,7 @@ class TareaViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _syncStatus.value = "pendiente"
-            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
             val fechaCompletado = format.format(Date())
             val result = taskRepository.completarTarea(id, fechaCompletado, completadoPorNombre)
             _isLoading.value = false

@@ -55,7 +55,7 @@ class WasteRepository @Inject constructor(
         try {
             val hoy = java.util.Date()
             val haceSieteDias = java.util.Date(hoy.time - 7 * 24 * 60 * 60 * 1000L)
-            val format = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val format = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
             val dateLimitStr = format.format(haceSieteDias)
             
             val allWastes = wasteDao.getAllWastes()

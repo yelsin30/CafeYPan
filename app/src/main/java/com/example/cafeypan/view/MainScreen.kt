@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.example.cafeypan.data.local.entity.TaskEntity
 import com.example.cafeypan.ui.theme.*
+import com.example.cafeypan.util.DateUtils
 import com.example.cafeypan.viewmodel.LoginViewModel
 import com.example.cafeypan.viewmodel.TareaViewModel
 import java.text.SimpleDateFormat
@@ -481,10 +482,11 @@ fun MainScreen(
                                 ) {
                                     // Selector de Fecha para la Tarea (Editable y Multi-Fecha)
                                     OutlinedTextField(
-                                        value = fechaSeleccionada,
-                                        onValueChange = { fechaSeleccionada = it },
+                                        value = DateUtils.formatMultiDateForUi(fechaSeleccionada),
+                                        onValueChange = {},
+                                        readOnly = true,
                                         label = { Text("Fecha(s) de Asignación") },
-                                        placeholder = { Text("ej. 2026-06-11, 2026-06-12") },
+                                        placeholder = { Text("Seleccionar...") },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(10.dp),
@@ -497,10 +499,11 @@ fun MainScreen(
 
                                     // Selector de Fecha Límite (Opcional)
                                     OutlinedTextField(
-                                        value = fechaLimiteSeleccionada,
-                                        onValueChange = { fechaLimiteSeleccionada = it },
+                                        value = DateUtils.formatDateForUi(fechaLimiteSeleccionada),
+                                        onValueChange = {},
+                                        readOnly = true,
                                         label = { Text("Fecha Límite (Opcional)") },
-                                        placeholder = { Text("ej. YYYY-MM-DD") },
+                                        placeholder = { Text("Seleccionar...") },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(10.dp),
@@ -799,14 +802,15 @@ fun MainScreen(
         var quantityInput by remember { mutableStateOf("") }
         var reasonInput by remember { mutableStateOf("Excedente") }
         var costInput by remember { mutableStateOf("") }
+        var unitPriceInput by remember { mutableStateOf("") }
         var productDropdownExpanded by remember { mutableStateOf(false) }
         var reasonDropdownExpanded by remember { mutableStateOf(false) }
 
-        val productPrices = mapOf(
-            "Baguette" to 1.5,
-            "Croissant" to 2.0,
-            "Leche entera" to 1.0,
-            "Café en grano" to 15.0
+        val productList = listOf(
+            "Baguette",
+            "Croissant",
+            "Leche entera",
+            "Café en grano"
         )
 
         AlertDialog(
@@ -846,14 +850,12 @@ fun MainScreen(
                             onDismissRequest = { productDropdownExpanded = false },
                             modifier = Modifier.fillMaxWidth(0.9f)
                         ) {
-                            productPrices.keys.forEach { prod ->
+                            productList.forEach { prod ->
                                 DropdownMenuItem(
                                     text = { Text(prod) },
                                     onClick = {
                                         selectedProduct = prod
                                         productDropdownExpanded = false
-                                        val qty = quantityInput.toDoubleOrNull() ?: 0.0
-                                        costInput = String.format(Locale.US, "%.2f", qty * productPrices[prod]!!)
                                     }
                                 )
                             }
@@ -866,7 +868,7 @@ fun MainScreen(
                         onValueChange = { valText ->
                             quantityInput = valText
                             val qty = valText.toDoubleOrNull() ?: 0.0
-                            val price = productPrices[selectedProduct] ?: 0.0
+                            val price = unitPriceInput.toDoubleOrNull() ?: 0.0
                             costInput = String.format(Locale.US, "%.2f", qty * price)
                         },
                         label = { Text("Cantidad (unidades o kg)") },
@@ -876,15 +878,32 @@ fun MainScreen(
                         shape = RoundedCornerShape(10.dp)
                     )
 
-                    // Costo Estimado
+                    // Precio Unitario
                     OutlinedTextField(
-                        value = costInput,
-                        onValueChange = { costInput = it },
-                        label = { Text("Costo Total (S/ - editable)") },
+                        value = unitPriceInput,
+                        onValueChange = { valText ->
+                            unitPriceInput = valText
+                            val qty = quantityInput.toDoubleOrNull() ?: 0.0
+                            val price = valText.toDoubleOrNull() ?: 0.0
+                            costInput = String.format(Locale.US, "%.2f", qty * price)
+                        },
+                        label = { Text("Precio Unitario (S/)") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp)
+                    )
+
+                    // Costo Total
+                    OutlinedTextField(
+                        value = costInput,
+                        onValueChange = { costInput = it },
+                        label = { Text("Costo Total (S/ - auto-calculado)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        readOnly = true
                     )
 
                     // Motivo
@@ -1145,8 +1164,9 @@ fun MainScreen(
 
                     // Selector de Fecha
                     OutlinedTextField(
-                        value = editFecha,
-                        onValueChange = { editFecha = it },
+                        value = DateUtils.formatDateForUi(editFecha),
+                        onValueChange = {},
+                        readOnly = true,
                         label = { Text("Fecha de Asignación") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -1160,10 +1180,11 @@ fun MainScreen(
 
                     // Selector de Fecha Límite
                     OutlinedTextField(
-                        value = editFechaLimite ?: "",
-                        onValueChange = { editFechaLimite = if (it.isEmpty()) null else it },
+                        value = DateUtils.formatDateForUi(editFechaLimite),
+                        onValueChange = {},
+                        readOnly = true,
                         label = { Text("Fecha Límite (Opcional)") },
-                        placeholder = { Text("ej. YYYY-MM-DD") },
+                        placeholder = { Text("Seleccionar...") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
@@ -1253,7 +1274,7 @@ fun MainScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                             sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                             val selectedDate = sdf.format(Date(millis))
                             if (fechaSeleccionada.trim().isEmpty()) {
@@ -1286,7 +1307,7 @@ fun MainScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                             sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                             fechaLimiteSeleccionada = sdf.format(Date(millis))
                         }
@@ -1314,7 +1335,7 @@ fun MainScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                             sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                             editFecha = sdf.format(Date(millis))
                         }
@@ -1342,7 +1363,7 @@ fun MainScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                             sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                             editFechaLimite = sdf.format(Date(millis))
                         }
@@ -1619,15 +1640,6 @@ fun TareaItemRow(
                         color = if (tarea.estado == "Completada") MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
                     )
 
-                    if (!tarea.notas.isNullOrEmpty()) {
-                        Text(
-                            text = tarea.notas,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
-
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -1686,6 +1698,128 @@ fun TareaItemRow(
                         )
                     }
 
+                    if (!tarea.notas.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = "Nota",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = tarea.notas,
+                                    fontSize = 12.sp,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    if (!tarea.fechaLimite.isNullOrEmpty() || tarea.durationMinutes != null) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (!tarea.fechaLimite.isNullOrEmpty()) {
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                                    ),
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.secondary),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.DateRange,
+                                            contentDescription = "Fecha Límite",
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                        Text(
+                                            text = "Límite: ${DateUtils.formatDateForUi(tarea.fechaLimite)}",
+                                            fontSize = 9.sp,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+
+                            tarea.durationMinutes?.let { duration ->
+                                val isTimerActive = timerRunning && (tarea.estado == "Pendiente" || tarea.estado == "Atrasada")
+                                val containerColor = if (isTimerActive) {
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
+                                } else {
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                                }
+                                val contentColor = if (isTimerActive) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.secondary
+                                }
+                                val borderStroke = if (isTimerActive) {
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                                } else {
+                                    BorderStroke(0.5.dp, MaterialTheme.colorScheme.secondary)
+                                }
+
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = containerColor),
+                                    border = borderStroke,
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "Duración",
+                                            tint = contentColor,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                        if (isTimerActive) {
+                                            val minutesLeft = timeLeftSeconds / 60
+                                            val secondsLeft = timeLeftSeconds % 60
+                                            Text(
+                                                text = String.format(Locale.getDefault(), "Listo en: %02d:%02d ⏱️", minutesLeft, secondsLeft),
+                                                fontSize = 9.sp,
+                                                color = contentColor,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        } else {
+                                            Text(
+                                                text = "Ciclo: $duration min",
+                                                fontSize = 9.sp,
+                                                color = contentColor,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     if (tarea.estado == "Completada" && tarea.fechaCompletado != null) {
                         val completadoPorText = if (!tarea.completadoPorNombre.isNullOrEmpty()) {
                             " por ${tarea.completadoPorNombre}"
@@ -1693,19 +1827,9 @@ fun TareaItemRow(
                             ""
                         }
                         Text(
-                            text = "Completado: ${tarea.fechaCompletado}$completadoPorText",
+                            text = "Completado: ${DateUtils.formatDateTimeForUi(tarea.fechaCompletado)}$completadoPorText",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    if (!tarea.fechaLimite.isNullOrEmpty()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Límite: ${tarea.fechaLimite}",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.error,
-                            fontWeight = FontWeight.Bold
                         )
                     }
 

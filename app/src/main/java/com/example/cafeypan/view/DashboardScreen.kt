@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cafeypan.ui.theme.*
 import com.example.cafeypan.viewmodel.TareaViewModel
+import com.example.cafeypan.util.DateUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -85,7 +86,7 @@ fun DashboardScreen(
     // 3. Canvas Semanal (Tareas completadas por día de la semana actual/última)
     // Para simplificar, agrupamos por la fecha ('yyyy-MM-dd') de los últimos 7 días con registro.
     val progresoSemanal = remember(todasLasTareas) {
-        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val outputFormat = SimpleDateFormat("EEE dd", Locale.getDefault())
         
         todasLasTareas
@@ -495,13 +496,13 @@ fun DashboardScreen(
                                         Text(tarea.descripcion, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = "Fecha Asignada: ${tarea.fecha}${if (tarea.fechaLimite != null) " | Límite: ${tarea.fechaLimite}" else ""}",
+                                            text = "Fecha Asignada: ${DateUtils.formatDateForUi(tarea.fecha)}${if (tarea.fechaLimite != null) " | Límite: ${DateUtils.formatDateForUi(tarea.fechaLimite)}" else ""}",
                                             fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         if (tarea.fechaCompletado != null) {
                                             Text(
-                                                text = "Completado el: ${tarea.fechaCompletado}",
+                                                text = "Completado el: ${DateUtils.formatDateTimeForUi(tarea.fechaCompletado)}",
                                                 fontSize = 11.sp,
                                                 color = Color(0xFF3BAE76),
                                                 fontWeight = FontWeight.Medium

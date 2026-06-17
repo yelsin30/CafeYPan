@@ -53,7 +53,7 @@ class WasteViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val hoy = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
             val result = wasteRepository.registrarMerma(product, quantity, reason, cost, hoy)
             if (result.isSuccess) {
                 cargarMermaSemanal()
